@@ -106,5 +106,18 @@ export class TimeTreeSettingsTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 });
             });
+
+        new Setting(this.containerEl)
+            .setName("Only First Tracker")
+            .setDesc(
+                "Whether only the first tracker should be displayed in the tracker table."
+            )
+            .addToggle((t) => {
+                t.setValue(this.plugin.settings.onlyFirstTracker);
+                t.onChange(async (v) => {
+                    this.plugin.settings.onlyFirstTracker = v;
+                    await this.plugin.saveSettings();
+                });
+            });
     }
 }

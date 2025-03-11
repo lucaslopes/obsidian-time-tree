@@ -6,6 +6,7 @@ export const defaultSettings: TimeTreeSettings = {
     reverseSegmentOrder: false,
     timestampDurations: false,
     showToday: false,
+    onlyFirstTracker: false,
 };
 
 export interface TimeTreeSettings {
@@ -16,4 +17,5 @@ export interface TimeTreeSettings {
     reverseSegmentOrder: boolean;
     timestampDurations: boolean;
     showToday: boolean;
+    onlyFirstTracker: boolean;
 }

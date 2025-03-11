@@ -109,6 +109,11 @@ export function displayTracker(
                 startNewEntry(tracker, newSegmentNameBox.getValue());
             }
             await saveTracker(tracker, getFile(), getSectionInfo());
+            if (running) {
+                (app as any).commands.executeCommandById(
+                    "time-tree:update-accumulated-time"
+                );
+            }
         });
     btn.buttonEl.addClass("time-tree-btn");
     let newSegmentNameBox = new TextComponent(element)

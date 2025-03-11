@@ -1,4 +1,4 @@
-import { MarkdownRenderChild, Plugin, TFile } from "obsidian";
+import { MarkdownRenderChild, Plugin, TFile, Notice } from "obsidian";
 import { defaultSettings, TimeTreeSettings } from "./settings";
 import { TimeTreeSettingsTab } from "./settings-tab";
 import {
@@ -16,6 +16,7 @@ import {
     loadTracker,
     orderedEntries,
 } from "./tracker";
+import YAML from "yaml";
 
 export default class TimeTreePlugin extends Plugin {
     public api = {
@@ -80,6 +81,14 @@ export default class TimeTreePlugin extends Plugin {
                 e.replaceSelection("```time-tree\n```\n");
             },
         });
+
+        this.addCommand({
+            id: "update-accumulated-time",
+            name: "Update Accumulated Time",
+            callback: async () => {
+                await this.updateActiveFileMetadata();
+            },
+        });
     }
 
     async loadSettings(): Promise<void> {
@@ -92,5 +101,66 @@ export default class TimeTreePlugin extends Plugin {
 
     async saveSettings(): Promise<void> {
         await this.saveData(this.settings);
+    }
+
+    async updateActiveFileMetadata(): Promise<void> {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) {
+            new Notice("No active file found.");
+            return;
+        }
+
+        // Use our own API functions (the plugin itself is the time tracker)
+        // Load all trackers for the active file.
+        const trackers = await this.api.loadAllTrackers(activeFile.path);
+        if (!trackers || trackers.length === 0) {
+            new Notice("No time trackers found in this file.");
+            return;
+        }
+
+        // Sum up the total duration.
+        let totalDuration = 0;
+        if (this.settings.onlyFirstTracker && trackers.length > 0) {
+            totalDuration = this.api.getTotalDuration(
+                trackers[0].tracker.entries,
+                new Date()
+            );
+        } else {
+            for (const { tracker } of trackers) {
+                totalDuration += this.api.getTotalDuration(
+                    tracker.entries,
+                    new Date()
+                );
+            }
+        }
+
+        // Read the file content and update (or add) YAML frontmatter.
+        let content = await this.app.vault.read(activeFile);
+        const yamlRegex = /^---\n([\s\S]*?)\n---/;
+        let newYamlBlock: string;
+        const yamlMatch = content.match(yamlRegex);
+        if (yamlMatch) {
+            try {
+                let frontmatter = YAML.parse(yamlMatch[1]) || {};
+                frontmatter.elapsed = totalDuration;
+                newYamlBlock = `---\n${YAML.stringify(frontmatter)}---\n`;
+            } catch (e) {
+                new Notice("Error parsing YAML front matter.");
+                console.error(e);
+                return;
+            }
+        } else {
+            newYamlBlock = `---\nelapsed: ${totalDuration}\n---\n`;
+        }
+
+        let newContent: string;
+        if (yamlMatch) {
+            newContent = newYamlBlock + content.slice(yamlMatch[0].length);
+        } else {
+            newContent = newYamlBlock + content;
+        }
+
+        await this.app.vault.modify(activeFile, newContent);
+        new Notice(`Updated elapsed time: ${totalDuration}`);
     }
 }
