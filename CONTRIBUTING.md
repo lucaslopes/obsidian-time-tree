@@ -1,4 +1,4 @@
-Hi, thanks for contributing to Super Simple Time Tracker!
+Hi, thanks for contributing to Time Tree!
 
 Before reporting an issue, please check if there is already an open or recently closed issue that fits your description. If there is, consider contributing to it instead of opening your own.
 

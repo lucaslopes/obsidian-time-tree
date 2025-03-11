@@ -1,4 +1,4 @@
-export const defaultSettings: SimpleTimeTrackerSettings = {
+export const defaultSettings: TimeTreeSettings = {
     timestampFormat: "YY-MM-DD HH:mm:ss",
     editableTimestampFormat: "YYYY-MM-DD HH:mm:ss",
     csvDelimiter: ",",
@@ -8,8 +8,7 @@ export const defaultSettings: SimpleTimeTrackerSettings = {
     showToday: false,
 };
 
-export interface SimpleTimeTrackerSettings {
-
+export interface TimeTreeSettings {
     timestampFormat: string;
     editableTimestampFormat: string;
     csvDelimiter: string;
